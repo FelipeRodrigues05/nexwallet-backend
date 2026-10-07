@@ -1,0 +1,47 @@
+name: Qodana
+
+on:
+  push:
+    branches:
+      - development
+      - main
+  pull_request:
+    branches:
+      - development
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qodana-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qodana:
+    name: JVM code quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Run Qodana
+        uses: JetBrains/qodana-action@3e8d76ff0e0241618abd808682f426afe84bab3f # v2026.2.2
+        with:
+          pr-mode: ${{ github.event_name == 'pull_request' }}
+          use-caches: false
+          post-pr-comment: ${{ github.event_name == 'pull_request' }}
+          use-annotations: true
+          upload-result: true
+          push-fixes: none
