@@ -5,8 +5,6 @@ import com.spring.bank.investment.enums.ProductType;
 import com.spring.bank.investment.model.InvestmentProduct;
 import com.spring.bank.investment.repository.InvestmentProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,12 +12,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InvestmentProductCatalogService implements ApplicationRunner {
+public class InvestmentProductCatalogService {
 
     private final InvestmentProductRepository investmentProductRepository;
 
-    @Override
-    public void run(ApplicationArguments args) {
+    public void seedDefaults() {
         if (investmentProductRepository.count() > 0) {
             return;
         }
@@ -30,7 +27,14 @@ public class InvestmentProductCatalogService implements ApplicationRunner {
                 buildProduct("LCI 95% CDI", ProductType.LCI, "0.103", "0.95", "1000", 90, true),
                 buildProduct("LCA 90% CDI", ProductType.LCA, "0.097", "0.90", "1000", 90, true),
                 buildProduct("Tesouro Selic 2027", ProductType.TESOURO_SELIC, "0.108", null, "30", 1, false),
-                buildProduct("Tesouro Prefixado 12.75% 2029", ProductType.TESOURO_PREFIXADO, "0.1275", null, "30", 1, false)
+                buildProduct(
+                        "Tesouro Prefixado 12.75% 2029",
+                        ProductType.TESOURO_PREFIXADO,
+                        "0.1275",
+                        null,
+                        "30",
+                        1,
+                        false)
         );
 
         investmentProductRepository.saveAll(defaultProducts);
@@ -43,8 +47,7 @@ public class InvestmentProductCatalogService implements ApplicationRunner {
             String cdiPercentage,
             String minimumAmount,
             int minimumDaysToRedeem,
-            boolean irExempt
-    ) {
+            boolean irExempt) {
         InvestmentProduct product = new InvestmentProduct();
         product.setName(name);
         product.setType(type);

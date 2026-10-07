@@ -5,11 +5,13 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
 @Component
+@ConditionalOnProperty(name = "nexwallet.runtime.role", havingValue = "legacy-domain")
 public class JwtTokenProvider {
 
     private final Algorithm algorithm;
@@ -17,8 +19,7 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration-seconds:3600}") long expirationSeconds
-    ) {
+            @Value("${app.jwt.expiration-seconds:3600}") long expirationSeconds) {
         this.algorithm = Algorithm.HMAC256(secret);
         this.expirationSeconds = expirationSeconds;
     }

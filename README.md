@@ -152,10 +152,13 @@ Em um banco já existente, `baseline-on-migrate=true` garante que o Flyway execu
 ### Com Docker Compose
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 
-Sobe: API (8000), MySQL (3306), RabbitMQ (5672 / UI 15672), Mailpit (1025 / UI 8025), Prometheus (9090), Grafana (3001).
+Sobe: API (8000), workers de transação e transferência, MySQL (3306), RabbitMQ
+(5672 / UI 15672), Mailpit (1025 / UI 8025), Prometheus (9090) e Grafana (3001).
+Os papéis de execução e o plano de separação dos demais módulos estão em
+[`docs/microservices-migration.md`](docs/microservices-migration.md).
 
 | Serviço | URL |
 |---|---|
@@ -242,6 +245,7 @@ Cobertura atual: **~82 testes unitários** cobrindo controllers (`@WebMvcTest`) 
 | `CARD_BILL_CLOSE_CRON` | `0 0 0 1 * *` | Cron de fechamento de fatura |
 | `SCHEDULING_CRON` | `0 0 8 * * *` | Cron de pagamentos agendados |
 | `APP_ENVIRONMENT` | `local` | Tag de ambiente nas métricas |
+| `NEXWALLET_RUNTIME_ROLE` | `api` | Processo: `api`, `transaction-worker` ou `transfer-worker` |
 
 ---
 

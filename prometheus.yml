@@ -7,7 +7,7 @@ scrape_configs:
     metrics_path: /actuator/prometheus
     static_configs:
       - targets:
-          - nexwallet-app:8000
+          - nexwallet-api:8000
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance

@@ -13,9 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "nexwallet.runtime.role", havingValue = "legacy-domain")
 @RequiredArgsConstructor
 public class TransferProcessor {
 
@@ -42,7 +44,7 @@ public class TransferProcessor {
                     transfer.getAmount(), transfer.getDescription()
             ));
 
-            rabbitTemplate.convertAndSend(RabbitMQConfig.TRANSFER_RESPONSE, transferId);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.TRANSFER_RESPONSE_QUEUE, transferId);
             log.info("Transfer processed: id={}", transferId);
         } catch (Exception e) {
             log.error("Failed to process transfer id={}: {}", transferId, e.getMessage(), e);
