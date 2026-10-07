@@ -1,34 +1,76 @@
-services:
+x-app-environment: &app-environment
+  DB_URL: jdbc:mysql://database:3306/nexwallet?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+  DB_USERNAME: docker
+  DB_PASSWORD: password
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: 5672
+  RABBITMQ_USERNAME: guest
+  RABBITMQ_PASSWORD: guest
+  JWT_SECRET: nexwallet-super-secret-key-change-in-production
+  DEFAULT_CLIENT_SECRET: nexwallet-secret
+  MAIL_HOST: mailpit
+  MAIL_PORT: 1025
+  DDL_AUTO: validate
+  CORS_ALLOWED_ORIGINS: http://localhost:3000
+  APP_ENVIRONMENT: docker
 
-  app:
+x-app-volumes: &app-volumes
+  - ./src:/app/src
+  - ./pom.xml:/app/pom.xml
+  - maven_cache:/root/.m2
+
+services:
+  api:
     build:
       context: .
       target: dev
-    container_name: nexwallet-app
+    image: nexwallet-backend:dev
+    container_name: nexwallet-api
     restart: unless-stopped
     ports:
       - "8000:8000"
-      - "35729:35729"   # Spring LiveReload port
-    volumes:
-      - ./src:/app/src                  # Hot reload: source code
-      - ./pom.xml:/app/pom.xml          # Hot reload: dependency changes
-      - maven_cache:/root/.m2           # Cache Maven dependencies between restarts
+      - "35729:35729"
+    volumes: *app-volumes
     environment:
+      <<: *app-environment
+      NEXWALLET_RUNTIME_ROLE: api
       SERVER_PORT: 8000
-      DB_URL: jdbc:mysql://database:3306/nexwallet?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
-      DB_USERNAME: docker
-      DB_PASSWORD: password
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_PASSWORD: guest
-      JWT_SECRET: nexwallet-super-secret-key-change-in-production
-      DEFAULT_CLIENT_SECRET: nexwallet-secret
-      MAIL_HOST: mailpit
-      MAIL_PORT: 1025
-      DDL_AUTO: validate
-      CORS_ALLOWED_ORIGINS: http://localhost:3000
-      APP_ENVIRONMENT: docker
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  transaction-worker:
+    build:
+      context: .
+      target: dev
+    image: nexwallet-backend:dev
+    container_name: nexwallet-transaction-worker
+    restart: unless-stopped
+    volumes: *app-volumes
+    environment:
+      <<: *app-environment
+      NEXWALLET_RUNTIME_ROLE: transaction-worker
+      SPRING_MAIN_WEB_APPLICATION_TYPE: none
+    depends_on:
+      database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  transfer-worker:
+    build:
+      context: .
+      target: dev
+    image: nexwallet-backend:dev
+    container_name: nexwallet-transfer-worker
+    restart: unless-stopped
+    volumes: *app-volumes
+    environment:
+      <<: *app-environment
+      NEXWALLET_RUNTIME_ROLE: transfer-worker
+      SPRING_MAIN_WEB_APPLICATION_TYPE: none
     depends_on:
       database:
         condition: service_healthy
@@ -49,7 +91,17 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "docker", "-ppassword"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "docker",
+          "-ppassword",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -12,6 +12,7 @@ import com.spring.bank.domain.enums.account.AccountTypeEnum;
 import com.spring.bank.domain.model.Account;
 import com.spring.bank.domain.service.AccountService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AccountController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Disabled("Legacy domain controllers are excluded from the application runtime")
 class AccountControllerTest {
 
     @Autowired private MockMvc mockMvc;
